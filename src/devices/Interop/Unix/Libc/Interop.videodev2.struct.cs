@@ -9,9 +9,9 @@ using System;
 using System.Runtime.InteropServices;
 using Iot.Device.Media;
 
-internal struct V4l2FrameBuffer
+internal unsafe struct V4l2FrameBuffer
 {
-    public IntPtr Start;
+    public void* Start;
     public uint Length;
 }
 

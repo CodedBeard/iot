@@ -18,7 +18,7 @@ namespace Iot.Device.Media
     {
         private const string DefaultDevicePath = "/dev/video";
         private const int BufferCount = 4;
-
+        private static readonly byte[] _zeroByte = new byte[] { 0x0 };
         private static readonly object s_initializationLock = new object();
 
         private int _deviceFileDescriptor = -1;
@@ -67,7 +67,7 @@ namespace Iot.Device.Media
             // Unmapping the applied buffer to user space
             for (uint i = 0; i < BufferCount; i++)
             {
-                Interop.munmap(buffers[i].Start, (int)buffers[i].Length);
+                Interop.munmap((IntPtr)buffers[i].Start, (int)buffers[i].Length);
             }
         }
 
@@ -313,9 +313,14 @@ namespace Iot.Device.Media
             V4l2Struct(V4l2Request.VIDIOC_DQBUF, ref frame);
 
             // Get data from pointer
-            IntPtr intptr = buffers[frame.index].Start;
-            byte[] dataBuffer = new byte[buffers[frame.index].Length];
-            Marshal.Copy(source: intptr, destination: dataBuffer, startIndex: 0, length: (int)buffers[frame.index].Length);
+            void* intptr = buffers[frame.index].Start;
+            var length = (int)buffers[frame.index].Length;
+#if NET5_0_OR_GREATER
+            var span = new Span<byte>(intptr, length);
+            length = span.TrimEnd(_zeroByte.AsSpan()).Length;
+#endif
+            byte[] dataBuffer = new byte[length];
+            Marshal.Copy(source: (IntPtr)intptr, destination: dataBuffer, startIndex: 0, length: length);
 
             // Requeue the buffer
             V4l2Struct(V4l2Request.VIDIOC_QBUF, ref frame);
@@ -334,8 +339,12 @@ namespace Iot.Device.Media
             V4l2Struct(V4l2Request.VIDIOC_DQBUF, ref frame);
 
             // Get data from pointer
-            IntPtr intptr = buffers[frame.index].Start;
+            void* intptr = buffers[frame.index].Start;
             var length = (int)buffers[frame.index].Length;
+#if NET5_0_OR_GREATER
+            var span = new Span<byte>(intptr, length);
+            length = span.TrimEnd(_zeroByte.AsSpan()).Length;
+#endif
             byte[] dataBuffer = Array.Empty<byte>();
             if (ImageBufferPoolingEnabled)
             {
@@ -346,7 +355,7 @@ namespace Iot.Device.Media
                 dataBuffer = new byte[length];
             }
 
-            Marshal.Copy(source: intptr, destination: dataBuffer, startIndex: 0, length: (int)buffers[frame.index].Length);
+            Marshal.Copy(source: (IntPtr)intptr, destination: dataBuffer, startIndex: 0, length: length);
 
             // Requeue the buffer
             V4l2Struct(V4l2Request.VIDIOC_QBUF, ref frame);
@@ -378,7 +387,7 @@ namespace Iot.Device.Media
                 V4l2Struct(V4l2Request.VIDIOC_QUERYBUF, ref buffer);
 
                 buffers[i].Length = buffer.length;
-                buffers[i].Start = Interop.mmap(IntPtr.Zero, (int)buffer.length, MemoryMappedProtections.PROT_READ | MemoryMappedProtections.PROT_WRITE, MemoryMappedFlags.MAP_SHARED, _deviceFileDescriptor, (int)buffer.m.offset);
+                buffers[i].Start = (void*)Interop.mmap(IntPtr.Zero, (int)buffer.length, MemoryMappedProtections.PROT_READ | MemoryMappedProtections.PROT_WRITE, MemoryMappedFlags.MAP_SHARED, _deviceFileDescriptor, (int)buffer.m.offset);
             }
 
             // Put the buffer in the processing queue
