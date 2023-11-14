@@ -9,7 +9,9 @@ using System.Runtime.InteropServices;
 
 internal partial class Interop
 {
+#pragma warning disable CS8981
     internal partial class libbcmhost
+#pragma warning restore CS8981
     {
         private const string LibbcmhostLibrary = "libbcm_host";
 

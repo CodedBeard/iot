@@ -60,12 +60,6 @@ namespace ArduinoCsCompiler.Runtime
             }
         }
 
-        [ArduinoImplementation("BufferZeroMemory")]
-        public static unsafe void ZeroMemory(void* b, uint byteLength)
-        {
-            throw new NotImplementedException();
-        }
-
         [ArduinoImplementation]
         public static unsafe void ZeroMemory(void* b, UIntPtr length)
         {

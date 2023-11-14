@@ -126,7 +126,7 @@ namespace Iot.Device.Ili934x.Samples
                     throw new IOException("Couldn't connect to board");
                 }
 
-                gpio = board.CreateGpioController();
+                gpio = board!.CreateGpioController();
                 displaySPI = board.CreateSpiDevice(new SpiConnectionSettings(0, 5)
                 {
                     ClockFrequency = 50_000_000

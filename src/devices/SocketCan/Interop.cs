@@ -148,8 +148,9 @@ namespace Iot.Device.SocketCan
 
             return ifr.ifr_ifindex;
         }
-
+#pragma warning disable CS8981
         internal unsafe struct ifreq
+#pragma warning restore CS8981
         {
             internal const int IFNAMSIZ = 16;
             public fixed byte ifr_name[IFNAMSIZ];

@@ -241,7 +241,9 @@ internal partial class InteropVideodev2
     }
 
     [StructLayout(LayoutKind.Explicit)]
+    #pragma warning disable CS8981
     internal unsafe struct fmt
+    #pragma warning restore CS8981
     {
         [FieldOffset(0)]
         public v4l2_pix_format pix;
@@ -339,7 +341,9 @@ internal partial class InteropVideodev2
         public v4l2_field field;
 
         [StructLayout(LayoutKind.Sequential)]
+        #pragma warning disable CS8981
         public struct timeval
+        #pragma warning restore CS8981
         {
             public nint tv_sec;
             public nint tv_usec;
