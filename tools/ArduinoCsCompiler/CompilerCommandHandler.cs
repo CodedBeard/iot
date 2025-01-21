@@ -30,7 +30,21 @@ namespace ArduinoCsCompiler
             _logger = this.GetCurrentClassLogger();
         }
 
-        public IlCapabilities? IlCapabilities => _ilCapabilities;
+        /// <summary>
+        /// Query the hardware capabilities.
+        /// Use the setter to set the value to null, to force an update
+        /// </summary>
+        public IlCapabilities? IlCapabilities
+        {
+            get
+            {
+                return _ilCapabilities;
+            }
+            set
+            {
+                _ilCapabilities = value;
+            }
+        }
 
         protected override void OnErrorMessage(string message, Exception? exception)
         {
@@ -196,7 +210,7 @@ namespace ArduinoCsCompiler
                     }
                     else if (data[2] == (byte)ExecutorCommand.ConditionalBreakpointHit || data[2] == (byte)ExecutorCommand.Variables)
                     {
-                        _compiler.OnCompilerCallback(data[3] | (data[4] << 7), MethodState.Debugging, data);
+                        _compiler.OnCompilerCallback(data[4] | (data[5] << 7), MethodState.Debugging, data);
                     }
                 }
                 else
@@ -344,7 +358,7 @@ namespace ArduinoCsCompiler
         {
             FirmataIlCommandSequence sequence = new FirmataIlCommandSequence(ExecutorCommand.DeclareMethod);
             sequence.SendInt32(declarationToken);
-            sequence.WriteByte((byte)methodFlags);
+            sequence.SendUInt14((ushort)methodFlags);
             sequence.WriteByte(maxStack);
             sequence.WriteByte(argCount);
             sequence.SendInt32((int)nativeMethod);

@@ -23,6 +23,7 @@ namespace Iot.Device.Board
     /// </summary>
     public class RaspberryPiBoard : GenericBoard
     {
+        private readonly string[] _configFile = new string[] { "/boot/firmware/config.txt", "/boot/config.txt" };
         private readonly object _initLock = new object();
         private readonly string[] _possibleI2cActivations = new string[]
         {
@@ -95,6 +96,20 @@ namespace Iot.Device.Board
             // TODO: Ideally detect board type, so that invalid combinations can be prevented (i.e. I2C bus 2 on Raspi 3)
             PinCount = 28;
             _initialized = false;
+
+            // Try to find the right configuration file
+            // There has been changes in RPI and it's now "/boot/firmware/config.txt"
+            // On older OS, the location is "/boot/config.txt"
+            // BUT, the "/boot/config.txt" still exists on newer OS but the file is not accessible
+            // So we have to try first the existance of the new location, then the old one
+            if (File.Exists(_configFile[0]))
+            {
+                ConfigurationFile = _configFile[0];
+            }
+            else
+            {
+                ConfigurationFile = _configFile[1];
+            }
         }
 
         /// <summary>
@@ -160,47 +175,47 @@ namespace Iot.Device.Board
             switch (busId)
             {
                 case 0:
-                {
-                    // Bus 0 is the one on logical pins 0 and 1. According to the docs, it should not
-                    // be used by application software and instead is reserved for HATs, but if you don't have one, it is free for other purposes
-                    sda = 0;
-                    scl = 1;
-                    break;
-                }
+                    {
+                        // Bus 0 is the one on logical pins 0 and 1. According to the docs, it should not
+                        // be used by application software and instead is reserved for HATs, but if you don't have one, it is free for other purposes
+                        sda = 0;
+                        scl = 1;
+                        break;
+                    }
 
                 case 1:
-                {
-                    // This is the bus commonly used by application software.
-                    sda = 2;
-                    scl = 3;
-                    break;
-                }
+                    {
+                        // This is the bus commonly used by application software.
+                        sda = 2;
+                        scl = 3;
+                        break;
+                    }
 
                 case 2:
-                {
-                    throw new NotSupportedException("I2C Bus number 2 doesn't exist");
-                }
+                    {
+                        throw new NotSupportedException("I2C Bus number 2 doesn't exist");
+                    }
 
                 case 3:
-                {
-                    sda = 4;
-                    scl = 5;
-                    break;
-                }
+                    {
+                        sda = 4;
+                        scl = 5;
+                        break;
+                    }
 
                 case 4:
-                {
-                    sda = 6;
-                    scl = 7;
-                    break;
-                }
+                    {
+                        sda = 6;
+                        scl = 7;
+                        break;
+                    }
 
                 case 5:
-                {
-                    sda = 10;
-                    scl = 11;
-                    break;
-                }
+                    {
+                        sda = 10;
+                        scl = 11;
+                        break;
+                    }
 
                 case 6:
                     sda = 22;
@@ -359,11 +374,10 @@ namespace Iot.Device.Board
         /// </summary>
         /// <param name="pinNumber">Pin number to use</param>
         /// <param name="usage">Requested usage</param>
-        /// <param name="pinNumberingScheme">Pin numbering scheme for the pin provided (logical or physical)</param>
         /// <param name="bus">Optional bus argument, for SPI and I2C pins</param>
         /// <returns>
         /// A member of <see cref="RaspberryPi3Driver.AltMode"/> describing the mode the pin is in.</returns>
-        private RaspberryPi3Driver.AltMode GetHardwareModeForPinUsage(int pinNumber, PinUsage usage, PinNumberingScheme pinNumberingScheme = PinNumberingScheme.Logical, int bus = 0)
+        private RaspberryPi3Driver.AltMode GetHardwareModeForPinUsage(int pinNumber, PinUsage usage, int bus = 0)
         {
             if (pinNumber >= PinCount)
             {
@@ -551,7 +565,7 @@ namespace Iot.Device.Board
                 throw new NotSupportedException("Alternate pin mode setting not supported by driver");
             }
 
-            var modeToSet = GetHardwareModeForPinUsage(pinNumber, usage, PinNumberingScheme.Logical);
+            var modeToSet = GetHardwareModeForPinUsage(pinNumber, usage);
             if (modeToSet != RaspberryPi3Driver.AltMode.Unknown)
             {
                 _raspberryPi3Driver.SetAlternatePinMode(pinNumber, modeToSet);
@@ -592,19 +606,19 @@ namespace Iot.Device.Board
 
             // Do some heuristics: If the given pin number can be used for I2C with the same Alt mode, we can assume that's what it
             // it set to.
-            var possibleAltMode = GetHardwareModeForPinUsage(pinNumber, PinUsage.I2c, DefaultPinNumberingScheme);
+            var possibleAltMode = GetHardwareModeForPinUsage(pinNumber, PinUsage.I2c);
             if (possibleAltMode == pinMode)
             {
                 return PinUsage.I2c;
             }
 
-            possibleAltMode = GetHardwareModeForPinUsage(pinNumber, PinUsage.Spi, DefaultPinNumberingScheme);
+            possibleAltMode = GetHardwareModeForPinUsage(pinNumber, PinUsage.Spi);
             if (possibleAltMode == pinMode)
             {
                 return PinUsage.Spi;
             }
 
-            possibleAltMode = GetHardwareModeForPinUsage(pinNumber, PinUsage.Pwm, DefaultPinNumberingScheme);
+            possibleAltMode = GetHardwareModeForPinUsage(pinNumber, PinUsage.Pwm);
             if (possibleAltMode == pinMode)
             {
                 return PinUsage.Pwm;

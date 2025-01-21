@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using ArduinoCsCompiler;
+using Iot.Device.Common;
 using Xunit;
 
 namespace Iot.Device.Arduino.Tests
@@ -27,9 +28,11 @@ namespace Iot.Device.Arduino.Tests
                 MaxMemoryUsage = 350_000
             };
 
+            ErrorManager.Logger = this.GetCurrentClassLogger();
+
             _compiler = new MicroCompiler(_fixture.Board!, true);
 
-            if (!_compiler.QueryBoardCapabilities(out IlCapabilities data))
+            if (!_compiler.QueryBoardCapabilities(false, out IlCapabilities data))
             {
                 throw new NotSupportedException("No valid IL execution firmware found on board");
             }
@@ -102,7 +105,7 @@ namespace Iot.Device.Arduino.Tests
             var exec = _compiler.PrepareAndRunExecutionSet(mainEntryPoint, CompilerSettings);
 
             long memoryUsage = exec.EstimateRequiredMemory();
-            Assert.True(memoryUsage < CompilerSettings.MaxMemoryUsage, $"Expected memory usage: {memoryUsage} bytes");
+            Assert.True(memoryUsage < CompilerSettings.MaxMemoryUsage, $"Expected code size less than {CompilerSettings.MaxMemoryUsage} bytes, but was {memoryUsage}");
 
             var task = exec.MainEntryPoint;
             task.InvokeAsync(args);

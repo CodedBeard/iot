@@ -19,6 +19,7 @@ namespace ArduinoCsCompiler
             AdditionalSuppressions = new List<string>();
             LaunchProgramFromFlash = false;
             MaxMemoryUsage = 256 * 1024;
+            UsePreviewFeatures = false;
         }
 
         /// <summary>
@@ -92,6 +93,16 @@ namespace ArduinoCsCompiler
             get;
             set;
         }
+
+        /// <summary>
+        /// True to support language preview features
+        /// </summary>
+        public bool UsePreviewFeatures { get; set; }
+
+        /// <summary>
+        /// The name of the process, if applicable
+        /// </summary>
+        public string? ProcessName { get; set; }
 
         object ICloneable.Clone()
         {

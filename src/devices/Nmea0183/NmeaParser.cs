@@ -145,6 +145,11 @@ namespace Iot.Device.Nmea0183
                     FireOnParserError(x.Message, NmeaError.PortClosed);
                     continue;
                 }
+                catch (OperationCanceledException x)
+                {
+                    FireOnParserError(x.Message, NmeaError.PortClosed);
+                    continue;
+                }
 
                 if (currentLine == null)
                 {
@@ -224,6 +229,11 @@ namespace Iot.Device.Nmea0183
                         {
                             continue;
                         }
+                    }
+
+                    if (sentenceToSend.Valid == false)
+                    {
+                        continue;
                     }
 
                     TalkerSentence ts = new TalkerSentence(sentenceToSend);

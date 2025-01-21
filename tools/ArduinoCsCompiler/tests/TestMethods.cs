@@ -687,7 +687,9 @@ namespace Iot.Device.Arduino.Tests
         {
             Span<byte> span = stackalloc byte[]
             {
-                (byte)a, (byte)b, (byte)(a + 1),
+                (byte)a,
+                (byte)b,
+                (byte)(a + 1),
             };
 
             MiniAssert.That(span.Length == 3);
@@ -1099,8 +1101,8 @@ namespace Iot.Device.Arduino.Tests
             int result = 0;
             try
             {
-                 result = a1 + a2;
-                 test = 2;
+                result = a1 + a2;
+                test = 2;
             }
             catch (OverflowException)
             {
@@ -1189,6 +1191,13 @@ namespace Iot.Device.Arduino.Tests
 
             MiniAssert.AreEqual("ABC", result);
             return 1;
+        }
+
+        public static int UseStringlyTypedDictionary(int arg1, int arg2)
+        {
+            var dict = new Dictionary<string, int>();
+            dict.Add("Blah", 1);
+            return dict.Count;
         }
 
         private class StuffThatNeedsDisposing : IDisposable
