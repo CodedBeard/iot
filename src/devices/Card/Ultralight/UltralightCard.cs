@@ -592,7 +592,7 @@ namespace Iot.Device.Card.Ultralight
             // 03 00 FE 00
             // Early NTAG should be formated a bit differently but this is enough
             // CP = NdefCapacity / 8
-            if (authenticationKey != default)
+            if (!authenticationKey.IsEmpty)
             {
                 var authOK = ProcessAuthentication(authenticationKey);
                 if (!authOK)

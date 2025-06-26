@@ -35,14 +35,14 @@ namespace DNSensorAzureIoTHub
             // set up for LED and pin
             using GpioController led = new();
             led.OpenPin(Pin, PinMode.Output);
-    
+
             // setup for BMP280
             I2cConnectionSettings i2cSettings = new(BusId, Bmp280.DefaultI2cAddress);
             I2cDevice i2cDevice = I2cDevice.Create(i2cSettings);
             using var i2CBmp280 = new Bmp280(i2cDevice);
 
             // Create an X.509 certificate object.
-            var cert = new X509Certificate2($"{DeviceID}.pfx", "1234");
+            var cert = X509CertificateLoader.LoadPkcs12FromFile($"{DeviceID}.pfx", "1234");
             var auth = new DeviceAuthenticationWithX509Certificate(DeviceID, cert);
             DeviceClient? azureIoTClient = DeviceClient.Create(IotBrokerAddress, auth, TransportType.Mqtt);
 

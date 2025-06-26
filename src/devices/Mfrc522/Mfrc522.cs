@@ -494,7 +494,7 @@ namespace Iot.Device.Mfrc522
             }
 
             // Read if there is something to read
-            if (receiveData != null)
+            if (!receiveData.IsEmpty)
             {
                 var bytesRead = ReadRegister(Register.FifoLevel);
                 if (bytesRead == 0 && receiveData.Length > 0)
