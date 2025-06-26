@@ -26,9 +26,6 @@ public class GpioController : IDisposable
     private const string RaspberryPi3Product = "Raspberry Pi 3";
     private const string RaspberryPi5Product = "Raspberry Pi 5";
 
-    private const string HummingBoardProduct = "HummingBoard-Edge";
-    private const string HummingBoardHardware = @"Freescale i.MX6 Quad/DualLite (Device Tree)";
-
     /// <summary>
     /// If a pin element exists, that pin is open. Uses current controller's numbering scheme
     /// </summary>
@@ -537,7 +534,16 @@ public class GpioController : IDisposable
                 // For now, for Raspberry Pi 5, we'll use the LibGpiodDriver.
                 // We need to create a new driver for the Raspberry Pi 5,
                 // because the Raspberry Pi 5 uses an entirely different GPIO controller (RP1)
-                return new LibGpiodDriver(4);
+#pragma warning disable SDGPIO0001
+                var chips = LibGpiodDriver.GetAvailableChips();
+                // The RP1 chip reports 54 lines
+                GpioChipInfo? selectedChip = chips.FirstOrDefault(x => x.NumLines == 54);
+                if (selectedChip is null)
+                {
+                    throw new NotSupportedException("Couldn't find the default GPIO chip. You might need to create the LibGpiodDriver explicitly");
+                }
+#pragma warning restore SDGPIO0001
+                return new LibGpiodDriver(selectedChip.Id);
 
             default:
 
@@ -572,13 +578,8 @@ public class GpioController : IDisposable
             return new RaspberryPi3Driver();
         }
 
-        if (baseBoardProduct == HummingBoardProduct || baseBoardProduct.StartsWith($"{HummingBoardProduct} "))
-        {
-            return new HummingBoardDriver();
-        }
-
         // Default for Windows IoT Core on a non-specific device
-        return new Windows10Driver();
+        throw new PlatformNotSupportedException();
     }
 
     /// <summary>
