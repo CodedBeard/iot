@@ -604,7 +604,7 @@ function InitializeBuildTool() {
 
     # Use override if it exists - commonly set by source-build
     if ($null -eq $env:_OverrideArcadeInitializeBuildToolFramework) {
-      $initializeBuildToolFramework="net8.0"
+      $initializeBuildToolFramework="net10.0"
     } else {
       $initializeBuildToolFramework=$env:_OverrideArcadeInitializeBuildToolFramework
     }
